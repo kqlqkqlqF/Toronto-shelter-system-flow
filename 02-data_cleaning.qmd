@@ -1,0 +1,88 @@
+---
+#### Preamble ####
+# Purpose: Clean the data up so that only the columes we need remained
+# Author: Yiyi Feng
+# Date: 20 January 2024
+# Contact: yiyi.feng@mail.utoronto.ca
+# License: MIT
+# Pre-requisites: [01-download_data.qmd]
+# Any other information needed? [...UPDATE THIS...]
+---
+
+```{r}
+#### Workspace setup ####
+library(knitr)
+library(janitor)
+library(lubridate)
+library(opendatatoronto)
+library(tidyverse)
+
+
+#### Basic cleaning ####
+raw_data <-
+  read_csv(
+    file = "inputs_data_raw_data.csv",
+    show_col_types = FALSE
+  )
+
+Fst_cleaned_data <-
+  clean_names(raw_data) |>
+  mutate(date_mmm_yy = as.Date(paste("01",date_mmm_yy,sep="-"),"%d-%b-%y")) |>
+  select(date_mmm_yy, ageunder16, age16_24, age25_44, age45_64, age65over)
+Fst_cleaned_data
+
+
+#### Save data ####
+
+write_csv(
+  x = Fst_cleaned_data,
+  file = "outputs_data_analysis_data_1.csv"
+)
+
+
+Snd_cleaned_data <-
+  Fst_cleaned_data |>
+  mutate(occupied_month = month(
+    date_mmm_yy,
+    label = TRUE,
+    abbr = FALSE
+  )) |>
+  arrange(month(date_mmm_yy)) |> 
+  summarise(num_under16 = mean(ageunder16), num_age16_24 = mean(age16_24), num_age25_44 = mean(age25_44), num_age45_64 = mean(age45_64), num_over65 = mean(age65over), 
+            .by = occupied_month) |>
+  select(occupied_month, num_under16, num_age16_24, num_age25_44, num_age45_64, num_over65)
+ 
+
+Snd_cleaned_data |>
+  kable(
+    col.names = c("Month", "Average people moved into shelters under 16", "between 16_24", "between 25_44", "between 45_64", "above 65"),
+    digits = 1
+  )
+
+#### Save data ####
+
+write_csv(
+  x = Snd_cleaned_data,
+  file = "outputs_data_analysis_data_2.csv"
+)
+
+```
+
+```{r}
+#### Make a graph ####
+#read data
+cleaned_graph_data <-
+  read_csv(
+    file = "outputs_data_analysis_data_2.csv",
+    show_col_types = FALSE)
+cleaned_graph_data
+
+#graph construction
+cleaned_graph_data |>
+  ggplot(mapping = aes(x = occupied_month, fill = num_under16)) +
+  geom_bar(position = "dodge2") +
+  labs(x = "Age group", y = "Number of observations", fill = "Vote") +
+  theme(legend.position = "bottom")
+
+```
+
