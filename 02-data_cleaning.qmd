@@ -77,12 +77,28 @@ cleaned_graph_data <-
     show_col_types = FALSE)
 cleaned_graph_data
 
-#graph construction
-cleaned_graph_data |>
-  ggplot(mapping = aes(x = occupied_month, fill = num_under16)) +
-  geom_bar(position = "dodge2") +
-  labs(x = "Age group", y = "Number of observations", fill = "Vote") +
-  theme(legend.position = "bottom")
+class(cleaned_graph_data)
+
+matrix_graph_data <- data.matrix(cleaned_graph_data)
+colnames(matrix_graph_data)
+
+matrix_graph_data <- 
+  matrix_graph_data[, colnames(matrix_graph_data) != "occupied_month"]
+
+rownames(matrix_graph_data) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jlu", "Aug", "Sep", "Oct", "Nov", "Dec")
+matrix_graph_data
+
+
+colors = c("green", "orange")
+months <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jly", "Aug", "Sep", "Oct", "Nov", "Dec")
+age <- c("num_under16", "num_age16_24")
+ 
+# Create the bar chart
+ggplot(cleaned_graph_data, aes(x = months, y = age)) +        # Create barchart with ggplot2
+  geom_bar(stat = "identity")
+
+```
+
 
 ```
 
