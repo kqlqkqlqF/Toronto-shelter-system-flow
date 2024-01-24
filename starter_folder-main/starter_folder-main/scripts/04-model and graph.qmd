@@ -1,0 +1,82 @@
+---
+#### Preamble ####
+# Purpose: Models... [...UPDATE THIS...]
+# Author: Rohan Alexander [...UPDATE THIS...]
+# Date: 11 February 2023 [...UPDATE THIS...]
+# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# License: MIT
+# Pre-requisites: [inputs/data/raw_data.csv, outputs/data/analysis_data_2.csv, ]
+# Any other information needed? [...UPDATE THIS...]
+---
+
+```{r}
+#### Workspace setup ####
+library(tidyverse)
+library(rstanarm)
+library(knitr)
+library(janitor)
+library(lubridate)
+library(tidyverse)
+
+#### Read data ####
+cleaned_graph_data <-
+  read_csv(
+    file = "outputs/data/analysis_data_2.csv",
+    show_col_types = FALSE)
+
+the_raw_data <-
+  read_csv(
+    file = "inputs/data/raw_data.csv",
+    show_col_types = FALSE)
+
+
+```
+
+
+```{r}
+### 1ST Graph data ####
+cleaned_graph_data |>
+  kable(
+    col.names = c("Month", "Average people moved into shelters under 16", "between 16_24", "between 25_44", "between 45_64", "above 65"),
+    digits = 1
+  )
+
+```
+
+
+```{r}
+#### 2ND graph data ####
+#show class of data
+class(cleaned_graph_data)
+#convert data into matrix for graph generating
+matrix_graph_data <- data.matrix(cleaned_graph_data)
+#get col names from matrix
+colnames(matrix_graph_data)
+#remove inappropriate col from matrix
+matrix_graph_data <- 
+  matrix_graph_data[, colnames(matrix_graph_data) != "occupied_month"]
+#rename the rows of matrix
+rownames(matrix_graph_data) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jlu", "Aug", "Sep", "Oct", "Nov", "Dec")
+#generate plot for matrix
+matplot(matrix_graph_data, type = "b",pch=1,col = 1:5, xlab = "Month", ylab = "Number pf people moved into shelter", 
+   main = "*Average people moved into shelter from 2018-2023 per month")
+legend("topright", legend = 1:5, col=1:5, pch=1)
+
+```
+
+
+
+
+
+```{r}
+####3RD graph data####
+#compose a scatterplot for data
+the_raw_data |>
+  ggplot(aes(x = returned_to_shelter, y = moved_to_housing, color = population_group)) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Number of people returned to shelter", y = "Number of people moved to housing", color = "Country")
+```
+
+

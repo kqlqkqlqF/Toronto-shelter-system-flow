@@ -1,0 +1,280 @@
+---
+title: "Analysis of amount of people moved in and out from Toronto shelter system between 2018-2023"
+author: 
+  - Yiyi Feng
+thanks: "Code and data are available at: LINK."
+date: today
+date-format: long
+abstract: "Homelessness and housing are always a issue in City of Toronto. From 2018 to 2023, this problem could be more extensive due to incresing housing price and pandemic.With Toronto shelter system flow data provided by Opentoronto, we are able to take an overview on the homeless group, and visualize the trend of them. This paper maily focused on a few key aspects of the homeless group:moved in/outtime period, age , gender, and group component."
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+#| echo: false
+
+####Workspace setup ####
+
+library(tidyverse)
+library(tidyverse)
+library(janitor)
+library(knitr)
+library(ggplot2)
+library(ggpubr)
+library(kableExtra)
+
+#### Read data ####
+#Please mute this setwd() function if there's no need to set the working session on your computer. On my side, I have to set this becayse its keep telling me my directory is wrong
+setwd("C:/Users/kqlqk/Desktop/starter_folder-main/starter_folder-main/scripts")
+
+the_raw_data <-
+  read_csv(
+    file = "raw_data.csv",
+    show_col_types = FALSE)
+
+cleaned_graph_data_2 <-
+  read_csv(
+    file = "analysis_data_2.csv",
+    show_col_types = FALSE)
+
+cleaned_graph_data_4 <-
+  read_csv(
+    file = "analysis_data_4.csv",
+    show_col_types = FALSE)
+
+cleaned_graph_data_5 <-
+  read_csv(
+    file = "analysis_data_5.csv",
+    show_col_types = FALSE)
+
+```
+# Introduction [^1]
+
+In the city of Toronto, a scene occurs every day: some homeless people gather in specific locations, or wait for services and food in front of shelters. This noteworthy phenomenon is particularly evident in downtown Toronto, where empirical data shows that more than half of the city’s homeless population tends to be concentrated in the downtown and East York areas. This is because 53% of the city's shelters are located in downtown Toronto and East York. These shelters provide homeless people with food, welfare, and an overnight temporary shelter.
+
+But even in this case, a considerable number of homeless people still have to sleep on the streets at night. As a resident and student in downtown Toronto, the harsh reality of homelessness becomes apparent while walking at night. People without shelter often seek shelter, especially on cold winter nights, in secluded corners near shop windows, inside bus shelters or on heated ventilation ducts to protect themselves from harsh weather conditions. No fewer than 9,000 people were forced to endure the inclement weather every night, despite overnight occupancy soaring to 98%.
+
+This reality got me thinking and led me to a series of questions about the homeless community. I would like to know the predominant age groups of the homeless population, and whether the arrival of winter will result in a significant increase in shelter occupancy compared to the summer. In addition, considering the increase in housing prices and the global pandemic in recent years, I wonder whether the number of occupancy in shelters will be affected by this and show an increasing trend.
+
+To find answers to this series of questions, we launched a comprehensive survey using data drawn from the Opendatatoronto [@opendatatoronto] database from 2018 to 2023. This investigative work involves systematic data processing and visualization technology, hoping to explore the trend of homeless people in Toronto from different angles during the period from 2018 to 2023.
+
+To systematically address the questions posed, the data were divided into three distinct parts to facilitate thorough analysis and visualization. The initial section sought to demonstrate seasonal patterns of shelter occupancy and examine age demographics to determine the ages of the major groups affected by homelessness and examine the impact of different seasons on occupancy rates. Subsequently, the second section focuses on summarizing the dynamics of the number of people entering and exiting shelters from 2018 to 2023, and exploring the impact of rising housing prices and the pandemic on the homeless situation. Finally, the third part focuses on a detailed analysis of the composition of the homeless population, analyzing the changes in the proportion of different population groups in the homeless population from 2018 to 2023. This structured exploration aims to uncover the multifaceted problem of homelessness in Toronto, providing a holistic perspective on its dynamics and influencing factors.
+
+[^1]: Please check https://github.com/kqlqkqlqF/Toronto-shelter-system-flow.git for more information.
+
+
+# Data 
+
+The data for this analysis was collected from the Open Data Toronto libarary [@opendatatoronto], which shares. The dataset, which was named as 'About Toronto Shelter System Flow', was used and analyzed in this paper.This data set includes a large amount of information about the flow of homeless people in Toronto shelters from January 18, 2018 to December 23, 2023, including the gender, age, number, and composition of shelter users (such as family/single moving in). In addition, this data set also provides information on the number of people leaving the shelter and new people entering the shelter. This data set is released by the Toronto Shelter, Support & Housing Administration and adopts a monthly update system, indicating that the data set is highly reliable. Moreover, this data set received full marks on the opendatatoronto website. The website evaluates data quality from five dimensions: Freshness, metadata, accessibility, completeness, and usability, and this data set received full marks on all five dimensions. Therefore, I think the content of this data set is highly authentic and credible, and use it as the data source for this paper. 
+
+## Section 1
+
+Section 1 aimed to find the seasonal patterns of shelter occupancy, and the major age group occupied the shelter. To get this information, I extracted all data from the Opendatatoronto website and processed the data. First, I only preserved columns with date information and the number of people who moved into the shelter with their age groups recorded. The level of age group was categorized into 5 levels: under 16, between 16 and 24, between 25 and 44, between 45 and 64, and above 65. Second, to find the seasonal patterns, I summarized the amount of people who moved into shelters each month and took the average to obtain a data set with the month and respective average amount of people who moved into shelters in that month. 
+
+Using this cleaned data set, I produced a (@fig-tab-one) and (@fig-one) for visualizing the trend of people moving in shelters with the change of month.
+
+```{r}
+#| label: fig-tab-one
+#| fig-cap: The average number of people move into shelter per month between 2018 and 2023
+#| echo: false
+
+cleaned_graph_data_2 |>
+  kable(
+    col.names = c("Month", "under_16", "between 16_24", "between 25_44", "between 45_64", "above 65"),
+    digits = 1
+  )
+```
+
+```{r}
+#| label: fig-one
+#| fig-cap: People of different ages moved into shelters between 2018 to 2023 
+#| echo: false
+#| message: false
+
+#### 2ND graph data ####
+#convert data into matrix for graph generating
+matrix_graph_data <- data.matrix(cleaned_graph_data_2)
+#remove inappropriate col from matrix
+matrix_graph_data <- 
+  matrix_graph_data[, colnames(matrix_graph_data) != "occupied_month"]
+#rename the rows of matrix
+rownames(matrix_graph_data) <- c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jlu", "Aug", "Sep", "Oct", "Nov", "Dec")
+#generate plot for matrix
+matplot(matrix_graph_data, type = "b",pch=1,col = 1:5, xlab = "Month", ylab = "Number pf people moved into shelter")
+legend("left", legend = 1:5, col=1:5, pch=1, horiz = TRUE)
+```
+
+In (@fig-one), the category 1-5 present in legend were as follows: Under 16 (1), between 16 and 24 (2), between 25 and 44 (3), between 45 and 64 (4), and above 65(5). 
+
+## Section 2
+
+In section 2, we focus on investigating the number of people moving in/oy of the shelters. So, we did 2 second round of data cleaning and visualizing. Similar to what we did in section 1, we removed all other columns and preserved columns containing information about the date, number of people returning from housing, return to shelters, and move to housing. We summarized the number of people who moved in/out of the shelter for each year and took the average to show a trend for each year. The people's return from housing means that the person has stayed in the shelter before and was recorded as moved to permanent housing, and now returned to the shelter from housing. Return to shelters was the class of people who stayed in the shelter before and hadn't been using the shelter for at least 3 months, and returned to shelters. Finally, move to house indicates people used the shelter and registered as moving to permenant housing.
+
+We constructed (@fig-tab-two), (@fig-two), (@fig-thr), and (@fig-fou)
+
+```{r}
+#| label: fig-tab-two
+#| fig-cap: The average number of people moved in/out from shelters between 2018 to 2023
+#| echo: false
+#| message: false
+
+cleaned_graph_data_4 |>
+  kable(
+    col.names = c("Year", "Return from housing", "Return to shelterS", "Move to housing"),
+    digits = 1
+  )
+```
+
+
+
+```{r}
+#| label: fig-two
+#| fig-cap: Trend of number of people returned from housing to shelter from 2018 to 2023
+#| echo: false
+#| message: false
+####3RD graph data####
+#compose a scatter plot for data
+cleaned_graph_data_4 |>
+  ggplot(aes(x = occupied_year, y = num_returned_from_housing
+             )) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Average number of people returned to shelter from housing", color = "Country")
+```
+
+```{r}
+#| label: fig-thr
+#| fig-cap: Trend of number of people returned to shelter between 2018 and 2023
+#| echo: false
+#| message: false
+
+####3RD graph data####
+#compose a scatterplot for data
+cleaned_graph_data_4 |>
+  ggplot(aes(x = occupied_year, y = num_returned_to_shelter, color = )) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Average number of people returned to shelter", color = "Country")
+```
+
+```{r}
+#| label: fig-fou
+#| fig-cap: Trend of number of people moved to housing between 2018 and 2023
+#| echo: false
+#| message: false
+
+####3RD graph data####
+#compose a scatterplot for data
+cleaned_graph_data_4 |>
+  ggplot(aes(x = occupied_year, y = num_moved_to_housing, color = )) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Average number of people moved to housing", color = "Country")
+```
+
+
+
+```{r}
+#| label: fig-fiv
+#| fig-cap: Overall trend of number of people moved to housing between 2018 and 2023
+#| echo: false
+#| message: false
+
+####3RD graph data####
+#compose a scatterplot for data
+cleaned_graph_data_5 |>
+  ggplot(aes(x = date_mmm_yy, y = moved_to_housing, color = population_group)) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Number of people moved to housing", color = "Population group")
+```
+
+
+
+```{r}
+#| label: fig-six
+#| fig-cap: Overall trend of number of homeless people became inactive between 2018 and 2023
+#| echo: false
+#| message: false
+
+####3RD graph data####
+#compose a scatterplot for data
+cleaned_graph_data_5 |>
+  ggplot(aes(x = date_mmm_yy, y = became_inactive, color = population_group)) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Number of homeless people became inactive", color = "Population group")
+```
+
+```{r}
+#| label: fig-sev
+#| fig-cap: Total trend of number of active homeless people between 2018 and 2023
+#| echo: false
+#| message: false
+
+####3RD graph data####
+#compose a scatterplot for data
+cleaned_graph_data_5 |>
+  ggplot(aes(x = date_mmm_yy, y = actively_homeless, color = population_group)) +
+  geom_jitter() +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal() +
+  labs(x = "Year", y = "Number of active homeless people", color = "Population group")
+```
+# Results
+
+##Section 1
+
+According (@tab-one) and (@fig-one), on the age group aspect, we can see that people whose age was between 25 and 44 occupied the most places in the shelter, while age group between 45 and 64 is the second, and age group above 65 occupied the least. Age group under 16 and between 16 and 24 occupied the shelter with a very close amount, while the age group under 16 occupied a little bit more. On the season aspect, we can see that there's no large fluctuation in shelter occupy rates throughout all months. There is a small increase in December, but the overall level remained stable.
+
+
+
+# Discussion
+
+## First discussion point {#sec-first-point}
+
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+
+## Second discussion point
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+Weaknesses and next steps should also be included.
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+# Additional data details
+
+
+## Posterior predictive check
+
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
+
+
+
+
+\newpage
+
+
+# References
+
